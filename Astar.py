@@ -248,7 +248,7 @@ Q = []
 Q.append(start)
 v[start] = 1
 while len(Q) != 0:
-    current_node = Q.GetFirst()
+    current_node = Q[0]  # or Q.pop(0)
     if current_node == goal_node:
         break
         print("Goal Reached")
