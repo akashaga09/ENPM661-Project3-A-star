@@ -50,12 +50,20 @@ ANG_THRESHOLD = 30
 STEP = 1
 
 start = input("Enter start point coordinates (x,y,theta):- ")
-goal = input("Enter goal point coordinates (x,y):- ")
-robot_radius = input("Enter robot radius:- ")
-clearance = input("Enter clearance value:- ")
-step = input("Enter step size (between 1-10):- ")
+start = list(map(int, start.split(",")))
+start = np.array(start)
 
-start = np.array([0,0,30], dtype="float")
+goal = input("Enter goal point coordinates (x,y):- ")
+goal = list(map(int, goal.split(",")))
+goal = np.array(goal)
+
+robot_radius = int(input("Enter robot radius:- "))
+
+clearance = int(input("Enter clearance value:- "))
+
+step = int(input("Enter step size (between 1-10):- "))
+
+#start = np.array([0,0,30], dtype="float")
 
 def move_straight(start):
     new_node = np.array([0,0,0], dtype="float")
@@ -97,15 +105,8 @@ def move_down_2(start):
     new_node[2] = start[2] - ANG_THRESHOLD*2
     return new_node
 
-print(start)
-print(move_straight(start))
-print(move_up_1(start))
-print(move_up_2(start))
-print(move_down_1(start))
-print(move_down_2(start))
-print(start)
 
-visited = np.zeros([int(300/DIST_THRESHOLD),int(200/DIST_THRESHOLD),12])
+v = np.zeros([int(300/DIST_THRESHOLD),int(200/DIST_THRESHOLD),12])
 #print(visited)
 parent = np.zeros([int(300/DIST_THRESHOLD),int(200/DIST_THRESHOLD),12])
 CostToCome = np.zeros([int(300/DIST_THRESHOLD),int(200/DIST_THRESHOLD),12])
@@ -151,8 +152,8 @@ def add_node(new_node, visited):  # math.modf(new_node[0])[0]
         k = 11
 
     print(i, j, k)
-    visited[i][j][k] = 1
-    return visited
+    v[i][j][k] = 1
+    return v
 
 
 def generate_obstacles(robot_radius, clearance):
@@ -231,8 +232,6 @@ def draw_map_rigid(obstacle_space,X,Y):
     plt.axis('off')
     plt.show()
 
-radius = int(input("Enter radius of the robot:- "))
-clearance = int(input("Enter clearance value:- "))
 obs = generate_obstacles(radius, clearance)
 #draw_map_rigid(obs[0],obs[1],obs[2])
 
@@ -246,25 +245,27 @@ def CostToGo(x,y,goal):
     return distance.euclidean(goal,point)
 Q = []
 Q.append(start)
-v[start] = 1
+v[start[0],start[1],start[2]] = 1
 while len(Q) != 0:
-    current_node = Q[0]  # or Q.pop(0)
-    if current_node == goal_node:
+    current_node = Q[0]
+    if current_node == goal:
         break
         print("Goal Reached")
     new_node = move_straight(current_node)
     # new_node[0], new_node[1], new_node[2] = 2*round(temp[0]), 2*round(temp[1]), 2*(temp[2]/30)
-    if v[new_node] == 0:
-        v[new_node] = 1
+    if v[new_node[0],new_node[1],new_node[2]] == 0:
+        v[new_node[0],new_node[1],new_node[2]] = 1
         Q.append(new_node)
         parent[new_node] = current_node
-        CostToCome(new_node) = CostToCome(current_node) + 1
-        Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
+        CostToCome[new_node[0],new_node[1],new_node[2]] = CostToCome[current_node[0], current_node[1], current_node[2]] + 1
+        Cost[new_node[0],new_node[1],new_node[2]] = CostToCome[new_node[0],new_node[1],new_node[2]] + \
+                                                        CostToGO(new_node[0],new_node[1],goal)
     else:
-        if Cost(new_node) > CostToCome(current_node) + 1 + CostToGo(new_node):
-            CostToCome(new_node) = CostToCome(current_node) + 1
-            Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
-            current_node = parent(new_node)
+        if Cost[new_node[0],new_node[1],new_node[2]] > CostToCome[current_node[0], current_node[1], current_node[2]] + 1 + CostToGO(new_node[0],new_node[1],goal):
+            CostToCome[new_node[0],new_node[1],new_node[2]] = CostToCome[current_node[0], current_node[1], current_node[2]] + 1
+            Cost[new_node[0],new_node[1],new_node[2]] = CostToCome[new_node[0],new_node[1],new_node[2]] + \
+                                                        CostToGO(new_node[0],new_node[1],goal)
+            current_node = parent[new_node]
 
     new_node = move_up_1(current_node)
     # new_node[0], new_node[1], new_node[2] = 2*round(temp[0]), 2*round(temp[1]), 2*(temp[2]/30)
@@ -272,13 +273,13 @@ while len(Q) != 0:
         v[new_node] = 1
         Q.append(new_node)
         parent[new_node] = current_node
-        CostToCome(new_node) = CostToCome(current_node) + 1
-        Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
+        CostToCome[new_node] = CostToCome[current_node] + 1
+        Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
     else:
-        if Cost(new_node) > CostToCome(current_node) + 1 + CostToGO(new_node[0],new_node[1],goal):
-            CostToCome(new_node) = CostToCome(current_node) + 1
-            Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
-            current_node = parent(new_node)
+        if Cost[new_node] > CostToCome[current_node] + 1 + CostToGO(new_node[0],new_node[1],goal):
+            CostToCome[new_node] = CostToCome[current_node] + 1
+            Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
+            current_node = parent[new_node]
 
     new_node = move_up_2(current_node)
     # new_node[0], new_node[1], new_node[2] = 2*round(temp[0]), 2*round(temp[1]), 2*(temp[2]/30)
@@ -286,13 +287,13 @@ while len(Q) != 0:
         v[new_node] = 1
         Q.append(new_node)
         parent[new_node] = current_node
-        CostToCome(new_node) = CostToCome(current_node) + 1
-        Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
+        CostToCome[new_node] = CostToCome[current_node] + 1
+        Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
     else:
-        if Cost(new_node) > CostToCome(current_node) + 1 + CostToGO(new_node[0],new_node[1],goal):
-            CostToCome(new_node) = CostToCome(current_node) + 1
-            Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
-            current_node = parent(new_node)
+        if Cost[new_node] > CostToCome[current_node] + 1 + CostToGO(new_node[0],new_node[1],goal):
+            CostToCome[new_node] = CostToCome[current_node] + 1
+            Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
+            current_node = parent[new_node]
 
     new_node = move_down_1(current_node)
     # new_node[0], new_node[1], new_node[2] = 2*round(temp[0]), 2*round(temp[1]), 2*(temp[2]/30)
@@ -300,13 +301,13 @@ while len(Q) != 0:
         v[new_node] = 1
         Q.append(new_node)
         parent[new_node] = current_node
-        CostToCome(new_node) = CostToCome(current_node) + 1
-        Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
+        CostToCome[new_node] = CostToCome[current_node] + 1
+        Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
     else:
-        if Cost(new_node) > CostToCome(current_node) + 1 + CostToGO(new_node[0],new_node[1],goal):
-            CostToCome(new_node) = CostToCome(current_node) + 1
-            Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
-            current_node = parent(new_node)
+        if Cost[new_node] > CostToCome[current_node] + 1 + CostToGO(new_node[0],new_node[1],goal):
+            CostToCome[new_node] = CostToCome[current_node] + 1
+            Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
+            current_node = parent[new_node]
 
     new_node = move_down_2(current_node)
     # new_node[0], new_node[1], new_node[2] = 2*round(temp[0]), 2*round(temp[1]), 2*(temp[2]/30)
@@ -314,13 +315,13 @@ while len(Q) != 0:
         v[new_node] = 1
         Q.append(new_node)
         parent[new_node] = current_node
-        CostToCome(new_node) = CostToCome(current_node) + 1
-        Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
+        CostToCome[new_node] = CostToCome[current_node] + 1
+        Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
     else:
-        if Cost(new_node) > CostToCome(current_node) + 1 + CostToGO(new_node[0],new_node[1],goal):
-            CostToCome(new_node) = CostToCome(current_node) + 1
-            Cost(new_node) = CostToCome(new_node) + CostToGO(new_node[0],new_node[1],goal)
-            current_node = parent(new_node)
+        if Cost[new_node] > CostToCome[current_node] + 1 + CostToGO(new_node[0],new_node[1],goal):
+            CostToCome[new_node] = CostToCome[current_node] + 1
+            Cost[new_node] = CostToCome[new_node] + CostToGO(new_node[0],new_node[1],goal)
+            current_node = parent[new_node]
 
 return 0
 
@@ -335,11 +336,3 @@ def back_track(goal, start):
         final_node = cn
 back_track(goal, start)
 print('path', path)
-
-
-
-
-
-
-
-
