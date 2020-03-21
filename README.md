@@ -1,5 +1,6 @@
 # Planning-Project3-A-star
-A* search algorithm
+Implementation of A* search algorithm
+
 # Authors
 
 1. Akash Agarwal
