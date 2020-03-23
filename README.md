@@ -16,6 +16,7 @@ Implemented the A* algorithm for a rigid robot.
 2. matplotlib library
 3. math library
 4. scipy library
+5. Time library
 5. Python 3.8
 
 # Instructions to Run
